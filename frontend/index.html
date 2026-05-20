@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArabSocials — Member Search</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────────── */
+    :root {
+      --sand:   #f5efe6;
+      --cream:  #faf7f2;
+      --gold:   #c9a96e;
+      --gold2:  #e8c98a;
+      --dark:   #1a1410;
+      --mid:    #4a3f35;
+      --muted:  #8a7d72;
+      --border: rgba(201,169,110,.22);
+      --card-bg: rgba(255,252,247,.92);
+      --radius: 12px;
+      --shadow: 0 4px 32px rgba(26,20,16,.10);
+      --transition: .22s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand);
+      color: var(--dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Ornamental background ───────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(201,169,110,.13) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 90% 100%, rgba(201,169,110,.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 52px 24px 36px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-wrap {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-ornament {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .logo-mark {
+      font-size: 11px;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .logo-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 300;
+      letter-spacing: .04em;
+      color: var(--dark);
+      line-height: 1;
+    }
+
+    .logo-title span { color: var(--gold); font-style: italic; }
+
+    .logo-sub {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 300;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 165px);
+    }
+
+    /* ── Sidebar filters ─────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      padding: 32px 24px;
+      overflow-y: auto;
+      max-height: calc(100vh - 165px);
+      position: sticky;
+      top: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .sidebar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--dark);
+    }
+
+    .btn-reset {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: var(--transition);
+    }
+    .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Filter group */
+    .filter-group {
+      margin-bottom: 22px;
+    }
+
+    .filter-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .filter-select,
+    .filter-input {
+      width: 100%;
+      padding: 9px 13px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+      transition: var(--transition);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7d72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .filter-input {
+      background-image: none;
+      padding-right: 13px;
+    }
+
+    .filter-select:focus,
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,169,110,.12);
+    }
+
+    /* Age range */
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .range-row input[type=number] {
+      width: 100%;
+      padding: 9px 13px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+    }
+    .range-row input[type=number]:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,169,110,.12);
+    }
+
+    /* Multi-select chips */
+    .chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      font-size: 12.5px;
+      color: var(--mid);
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--gold); color: var(--gold); }
+    .chip.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    /* Search button */
+    .btn-search {
+      width: 100%;
+      padding: 13px;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+    .btn-search:hover { background: var(--mid); }
+    .btn-search:active { transform: scale(.98); }
+
+    .btn-search.loading {
+      opacity: .7;
+      cursor: not-allowed;
+    }
+
+    /* Divider */
+    .filter-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── Results panel ───────────────────────────────────────────────── */
+    .results-panel {
+      padding: 28px 32px;
+      overflow-y: auto;
+    }
+
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .results-count {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: var(--dark);
+    }
+
+    .results-count strong { color: var(--gold); }
+
+    .results-sort {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      transition: var(--transition);
+      animation: fadeUp .35s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .card:hover::before { opacity: 1; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .card-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--dark);
+      margin-bottom: 2px;
+    }
+
+    .card-username {
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--sand);
+      color: var(--mid);
+      border: 1px solid var(--border);
+    }
+
+    .card-meta {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .card-meta span { color: var(--mid); font-weight: 500; }
+
+    .card-about {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--mid);
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .page-btn.active { background: var(--dark); color: #fff; border-color: var(--dark); }
+    .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .page-info {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 0 8px;
+    }
+
+    /* Empty / loading states */
+    .state-box {
+      text-align: center;
+      padding: 72px 24px;
+      color: var(--muted);
+    }
+
+    .state-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      opacity: .5;
+    }
+
+    .state-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--mid);
+      margin-bottom: 8px;
+    }
+
+    .state-text { font-size: 14px; line-height: 1.6; }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── API config banner ───────────────────────────────────────────── */
+    .config-banner {
+      background: rgba(201,169,110,.12);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--mid);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        max-height: none;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .results-panel { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-line">
+        <div class="logo-ornament"></div>
+        <span class="logo-mark">arabsocials.com</span>
+        <div class="logo-ornament"></div>
+      </div>
+      <h1 class="logo-title">Member <span>Search</span></h1>
+      <p class="logo-sub">Discover &amp; Connect</p>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Filters</span>
+        <button class="btn-reset" onclick="resetFilters()">Reset all</button>
+      </div>
+
+      <!-- API URL config -->
+      <div class="config-banner">
+        ⚙️ API: <strong id="api-url-display" style="word-break:break-all;"></strong>
+        <button onclick="promptApiUrl()" style="margin-left:auto;background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px;white-space:nowrap;">Change</button>
+      </div>
+
+      <!-- Location filters -->
+      <div class="filter-group">
+        <label class="filter-label">Country</label>
+        <select class="filter-select" id="f-country">
+          <option value="">Any country</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">State / Region</label>
+        <input type="text" class="filter-input" id="f-state" placeholder="e.g. California" />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">City</label>
+        <input type="text" class="filter-input" id="f-city" placeholder="e.g. New York" />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Nationality</label>
+        <select class="filter-select" id="f-nationality">
+          <option value="">Any nationality</option>
+        </select>
+      </div>
+
+      <hr class="filter-divider" />
+
+      <!-- Demographics -->
+      <div class="filter-group">
+        <label class="filter-label">Gender</label>
+        <div class="chip-wrap" id="chips-gender"></div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Marital Status</label>
+        <select class="filter-select" id="f-marital">
+          <option value="">Any</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Age Range</label>
+        <div class="range-row">
+          <input type="number" id="f-age-min" placeholder="Min" min="10" max="100" />
+          <input type="number" id="f-age-max" placeholder="Max" min="10" max="100" />
+        </div>
+      </div>
+
+      <hr class="filter-divider" />
+
+      <!-- Background -->
+      <div class="filter-group">
+        <label class="filter-label">Religion</label>
+        <div class="chip-wrap" id="chips-religion"></div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Education</label>
+        <select class="filter-select" id="f-education">
+          <option value="">Any</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Profession</label>
+        <select class="filter-select" id="f-profession">
+          <option value="">Any</option>
+        </select>
+      </div>
+
+      <hr class="filter-divider" />
+
+      <!-- Language & Interests -->
+      <div class="filter-group">
+        <label class="filter-label">Languages Spoken</label>
+        <div class="chip-wrap" id="chips-language"></div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Interests</label>
+        <div class="chip-wrap" id="chips-interest"></div>
+      </div>
+
+      <hr class="filter-divider" />
+
+      <!-- Keyword -->
+      <div class="filter-group">
+        <label class="filter-label">Keyword (About Me)</label>
+        <input type="text" class="filter-input" id="f-keyword" placeholder="e.g. entrepreneur, travel…" />
+      </div>
+
+      <button class="btn-search" id="btn-search" onclick="doSearch(1)">
+        Search Members
+      </button>
+    </aside>
+
+    <!-- ── Results ── -->
+    <main class="results-panel" id="results-panel">
+      <div class="state-box">
+        <div class="state-icon">✦</div>
+        <div class="state-title">Set your filters and search</div>
+        <div class="state-text">Use the filters on the left to find members<br>that match your criteria.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* ── Config ──────────────────────────────────────────────────── */
+    const DEFAULT_API = 'https://your-api.onrender.com'; // updated after deploy
+    let API_BASE = localStorage.getItem('arabsocials_api') || DEFAULT_API;
+
+    function updateApiDisplay() {
+      document.getElementById('api-url-display').textContent = API_BASE;
+    }
+
+    function promptApiUrl() {
+      const url = prompt('Enter your Render API base URL:', API_BASE);
+      if (url) {
+        API_BASE = url.replace(/\/$/, '');
+        localStorage.setItem('arabsocials_api', API_BASE);
+        updateApiDisplay();
+        loadOptions();
+      }
+    }
+
+    updateApiDisplay();
+
+    /* ── Multi-select chip state ─────────────────────────────────── */
+    const chipState = { gender: [], religion: [], language: [], interest: [] };
+
+    function buildChips(containerId, items, key) {
+      const wrap = document.getElementById(containerId);
+      wrap.innerHTML = '';
+      items.forEach(item => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.textContent = item;
+        chip.onclick = () => {
+          const idx = chipState[key].indexOf(item);
+          if (idx === -1) chipState[key].push(item);
+          else chipState[key].splice(idx, 1);
+          chip.classList.toggle('active', chipState[key].includes(item));
+        };
+        wrap.appendChild(chip);
+      });
+    }
+
+    function buildSelect(id, items, placeholder) {
+      const sel = document.getElementById(id);
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        sel.appendChild(opt);
+      });
+    }
+
+    /* ── Load options from API ──────────────────────────────────── */
+    async function loadOptions() {
+      try {
+        const res = await fetch(`${API_BASE}/options`);
+        if (!res.ok) throw new Error('API unavailable');
+        const opts = await res.json();
+
+        buildSelect('f-country',     opts.countries,    'Any country');
+        buildSelect('f-nationality', opts.nationalities,'Any nationality');
+        buildSelect('f-marital',     opts.marital_statuses, 'Any');
+        buildSelect('f-education',   opts.educations,   'Any');
+        buildSelect('f-profession',  opts.professions,  'Any');
+
+        buildChips('chips-gender',   opts.genders,   'gender');
+        buildChips('chips-religion', opts.religions,  'religion');
+        buildChips('chips-language', opts.languages,  'language');
+        buildChips('chips-interest', opts.interests,  'interest');
+
+        if (opts.age_min) document.getElementById('f-age-min').placeholder = opts.age_min;
+        if (opts.age_max) document.getElementById('f-age-max').placeholder = opts.age_max;
+
+      } catch (e) {
+        console.warn('Could not load options:', e.message);
+        document.querySelector('.config-banner').style.background = 'rgba(220,50,50,.08)';
+        document.querySelector('.config-banner').style.borderColor = '#c44';
+      }
+    }
+
+    /* ── Search ─────────────────────────────────────────────────── */
+    let currentPage = 1;
+
+    function getFilters(page) {
+      const p = new URLSearchParams();
+      const v = id => document.getElementById(id).value.trim();
+
+      if (v('f-country'))   p.set('country',        v('f-country'));
+      if (v('f-state'))     p.set('state',           v('f-state'));
+      if (v('f-city'))      p.set('city',            v('f-city'));
+      if (v('f-nationality')) p.set('nationality',   v('f-nationality'));
+      if (v('f-marital'))   p.set('marital_status',  v('f-marital'));
+      if (v('f-education')) p.set('education',       v('f-education'));
+      if (v('f-profession'))p.set('profession',      v('f-profession'));
+      if (v('f-keyword'))   p.set('about_keyword',   v('f-keyword'));
+
+      const ageMin = document.getElementById('f-age-min').value;
+      const ageMax = document.getElementById('f-age-max').value;
+      if (ageMin) p.set('age_min', ageMin);
+      if (ageMax) p.set('age_max', ageMax);
+
+      if (chipState.gender.length)   p.set('gender',   chipState.gender[0]);
+      if (chipState.religion.length) p.set('religion',  chipState.religion[0]);
+      if (chipState.language.length) p.set('language',  chipState.language.join(','));
+      if (chipState.interest.length) p.set('interest',  chipState.interest.join(','));
+
+      p.set('page', page);
+      p.set('page_size', 20);
+      return p;
+    }
+
+    async function doSearch(page = 1) {
+      currentPage = page;
+      const panel = document.getElementById('results-panel');
+      const btn = document.getElementById('btn-search');
+
+      btn.textContent = 'Searching…';
+      btn.classList.add('loading');
+      panel.innerHTML = `<div class="state-box"><div class="spinner"></div></div>`;
+
+      try {
+        const params = getFilters(page);
+        const res = await fetch(`${API_BASE}/search?${params}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderResults(data);
+      } catch (e) {
+        panel.innerHTML = `
+          <div class="state-box">
+            <div class="state-icon">⚠</div>
+            <div class="state-title">Could not reach the API</div>
+            <div class="state-text">Make sure your backend is deployed on Render<br>and the API URL above is correct.<br><br><code style="font-size:12px;color:var(--gold)">${e.message}</code></div>
+          </div>`;
+      } finally {
+        btn.textContent = 'Search Members';
+        btn.classList.remove('loading');
+      }
+    }
+
+    /* ── Render results ─────────────────────────────────────────── */
+    function renderResults(data) {
+      const panel = document.getElementById('results-panel');
+
+      if (data.total === 0) {
+        panel.innerHTML = `
+          <div class="state-box">
+            <div class="state-icon">◌</div>
+            <div class="state-title">No members found</div>
+            <div class="state-text">Try loosening your filters.</div>
+          </div>`;
+        return;
+      }
+
+      let html = `
+        <div class="results-bar">
+          <div class="results-count"><strong>${data.total.toLocaleString()}</strong> members found</div>
+          <div class="results-sort">Page ${data.page} of ${data.total_pages}</div>
+        </div>
+        <div class="cards-grid">`;
+
+      data.results.forEach((m, i) => {
+        const initial = (m.Name || m.Username || '?')[0].toUpperCase();
+        const avatarHtml = m.Image
+          ? `<img src="${m.Image}" alt="${m.Name}" onerror="this.style.display='none'">`
+          : initial;
+
+        const tags = [m.Gender, m.Marital_Status || m['Marital Status'], m.Religion, m.Education]
+          .filter(Boolean)
+          .map(t => `<span class="tag">${t}</span>`)
+          .join('');
+
+        const location = [m.City, m.State, m.Country].filter(Boolean).join(', ');
+        const langs = m['Language Spoken'] ? m['Language Spoken'].split(';').slice(0,3).map(l=>l.trim()).join(' · ') : '';
+        const interests = m.Interests ? m['Interests'].split(';').slice(0,4).map(i=>i.trim()).join(' · ') : '';
+
+        html += `
+          <div class="card" style="animation-delay:${Math.min(i,10)*30}ms">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div class="card-avatar">${avatarHtml}</div>
+              <div style="flex:1;min-width:0">
+                <div class="card-name">${m.Name || '—'}</div>
+                ${m.Username ? `<div class="card-username">@${m.Username}</div>` : ''}
+              </div>
+            </div>
+            <div class="card-tags">${tags}</div>
+            <div class="card-meta">
+              ${location ? `📍 <span>${location}</span><br>` : ''}
+              ${m.Age ? `🎂 <span>${m.Age} yrs</span>` : ''}${m.Nationality ? ` · <span>${m.Nationality}</span>` : ''}<br>
+              ${m.Profession ? `💼 <span>${m.Profession}</span><br>` : ''}
+              ${langs ? `🗣 ${langs}<br>` : ''}
+              ${interests ? `✦ ${interests}` : ''}
+            </div>
+            ${m['About Me'] ? `<div class="card-about">${m['About Me']}</div>` : ''}
+          </div>`;
+      });
+
+      html += `</div>`;
+
+      // Pagination
+      if (data.total_pages > 1) {
+        html += `<div class="pagination">`;
+        html += `<button class="page-btn" onclick="doSearch(${data.page - 1})" ${data.page <= 1 ? 'disabled' : ''}>‹</button>`;
+
+        const range = pagRange(data.page, data.total_pages);
+        range.forEach(p => {
+          if (p === '…') {
+            html += `<span class="page-info">…</span>`;
+          } else {
+            html += `<button class="page-btn ${p === data.page ? 'active' : ''}" onclick="doSearch(${p})">${p}</button>`;
+          }
+        });
+
+        html += `<button class="page-btn" onclick="doSearch(${data.page + 1})" ${data.page >= data.total_pages ? 'disabled' : ''}>›</button>`;
+        html += `</div>`;
+      }
+
+      panel.innerHTML = html;
+      panel.scrollTop = 0;
+    }
+
+    function pagRange(current, total) {
+      if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+      const pages = [1];
+      if (current > 3) pages.push('…');
+      for (let p = Math.max(2, current-1); p <= Math.min(total-1, current+1); p++) pages.push(p);
+      if (current < total - 2) pages.push('…');
+      pages.push(total);
+      return pages;
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────── */
+    function resetFilters() {
+      ['f-country','f-nationality','f-marital','f-education','f-profession'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.selectedIndex = 0;
+      });
+      ['f-state','f-city','f-age-min','f-age-max','f-keyword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      Object.keys(chipState).forEach(k => { chipState[k] = []; });
+      document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
+    }
+
+    /* ── Allow Enter key ────────────────────────────────────────── */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') doSearch(1);
+    });
+
+    /* ── Init ────────────────────────────────────────────────────── */
+    loadOptions();
+  </script>
+</body>
+</html>
